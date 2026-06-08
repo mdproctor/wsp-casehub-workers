@@ -1,135 +1,92 @@
-# Handoff — 2026-06-07 (Bootstrap)
+# Handoff — 2026-06-08
 
-**Head commit (project):** a40786f — chore: bootstrap casehub-workers repo
-**Head commit (workspace):** (initial — this commit)
+**Head commit (project):** 63b0816 — docs: spec v8 — package conventions, Camel component hierarchy, engine#447
+**Head commit (workspace):** (update after committing this file)
 
 ---
 
-## Context — Why This Repo Exists
+## What Was Done This Session
 
-This repo was created at the end of a design session in `casehubio/parent`. The session explored:
+The full `workers-camel` + `workers-common` design was brainstormed, specced, and reviewed through **7 review cycles** in the `casehubio/parent` session. The spec is approved and ready for implementation.
 
-1. A generalised **Desired State Management (DSM)** system (research doc in parent: `docs/superpowers/research/2026-06-07-desired-state-management-research.md`)
-2. The need for a **workers collection** — different execution runtimes for CaseHub case steps, beyond claudony (Claude CLI) and casehub-openclaw (OpenClaw)
-3. A **casehub-endpoints** module for platform — a named endpoint registry to decouple workers from hardcoded connection details
-
-The session established that claudony and openclaw are *integration platforms* (own repos). Workers like HTTP, Camel, Script are *thin SPI implementations* that belong together in one multi-module repo.
+Key decisions made:
+- `workers-common` is the shared async worker infrastructure layer (all worker types use it); future migration target is `casehub-engine` alongside Drools and Flow
+- Camel implements **both** `ReactiveWorkerProvisioner` (capability probe) and `WorkerExecutionManager` (actual dispatch) — two separate call sites in the engine
+- Completion fires `WorkflowExecutionCompleted` on `WORKER_EXECUTION_FINISHED` via `eventBus.publish()` — never `request()`
+- Camel faults use a **separate address** `CAMEL_WORKER_FAULT` (not `WORKFLOW_EXECUTION_FAILED`) to avoid double-handling by `QuartzWorkerExecutionJobListener`
+- `FaultCallbackEvent` CDI async (not a SPI) for REST callback fault routing — no `@DefaultBean` needed
+- `PendingCompletion.workerType` discriminator for multi-worker-module co-deployment safety
+- Retry mirrors Quartz exactly: `failureCount < retryPolicy.maxAttempts()`, `computeBackoffDelayMs()`, Vert.x timer with `emitOn` (not `runSubscriptionOn`)
+- engine#447 filed: `NoOpWorkerExecutionManager @DefaultBean` must be added to `casehub-engine` runtime
 
 ---
 
 ## Immediate Next Step
 
-**Brainstorm the Camel worker design.**
+**Implement `workers-common` and `workers-camel` per the approved spec.**
 
-The Camel worker is priority 2 (HTTP is 1, but Camel is the one that justifies the repo's existence — 300+ connectors). The brainstorm should produce a spec for `workers-camel` covering: SPI implementation approach, route configuration model, result mapping, and how it integrates with the `casehub-endpoints` registry once that ships from platform.
+Spec: `docs/superpowers/specs/2026-06-08-casehub-workers-camel-design.md`
 
-Run `/brainstorm` or invoke `superpowers:brainstorming` at the start of the session. The spec lands in `docs/superpowers/specs/`.
+Before implementing, invoke `superpowers:writing-plans` to turn the spec into an implementation plan. The plan lands in workspace `plans/`.
 
-After the Camel brainstorm, the endpoint registry spec (also from this session) goes to `casehubio/platform` for implementation.
-
----
-
-## Worker Candidates — Full Table
-
-Produced in the `casehubio/parent` design session. Use this as the starting point for the brainstorm.
-
-| Priority | Worker | Enterprise Reach | Impl Complexity | CaseHub Fit | Gap Filled | Quarkus Native | Justification |
-|----------|--------|-----------------|-----------------|-------------|------------|----------------|---------------|
-| 1 | **HTTP/Webhook** | High — any HTTP service | Low | High | Yes — broadest compat | Yes (RESTEasy) | Prove the framework works; every system has an HTTP endpoint |
-| 2 | **Camel** | Very High — 300+ connectors | Medium | High | Yes — enterprise integration | Yes (quarkus-camel) | Kafka, AWS, Salesforce, SAP, FTP, DB all become workers without custom code |
-| 3 | **MCP** | High — any MCP server | Low-Med | Very High | Yes — extends AI surface | Yes (Quarkus MCP) | Any MCP tool becomes a dispatchable CaseHub worker; natural fit |
-| 4 | **Script** | Medium | Low | High | Yes | Partial (subprocess) | Shell/Python/JS for automation, data processing, glue code |
-| 5 | **GitHub Actions** | Medium | Low | High | Yes | No (REST API) | Trigger GH Actions as case steps — directly relevant to devtown |
-| 6 | **K8s Job** | High — cloud-native | Medium | High | Yes | No (k8s client) | Any containerised workload as a case step |
-| 7 | **Ansible** | Medium-High | Medium | High — strategic | Yes | No (Ansible Runner) | Execute Ansible playbooks; natural execution layer for DSM transition plans |
-| 8 | **AWS Lambda** | Medium | Low | Medium | Partial (Camel covers) | No (AWS SDK) | FaaS dispatch for AWS-heavy deployments |
-| 9 | **Temporal** | Low-Med | High | Medium | Partial | No | Durable sub-workflows via Temporal.io |
-| 10 | **gRPC** | Medium | Medium | Medium | Partial | Yes (quarkus-grpc) | Microservices integration |
+**engine#447 dependency:** `NoOpWorkerExecutionManager @DefaultBean` is a required engine deliverable. The `workers-common` and `workers-camel` modules can be implemented independently without it — the CDI gap only affects a deployment with neither Quartz nor Camel. Do not block implementation on it, but note it in the plan.
 
 ---
 
-## Endpoint Registry Concept
+## What's Left
 
-Also designed in the parent session. A `casehub-endpoints` module is planned for `casehub-platform` (issue filed — check `casehubio/platform` issues).
-
-**The problem:** Workers currently hardcode connection details (URLs, credentials, topic names). This makes configuration fragile and prevents the DSM system from managing worker topology declaratively.
-
-**The solution:** A named endpoint registry. Workers reference endpoints by `Path`-based name; the registry resolves connection details at runtime.
-
-**Endpoint levels:**
-
-| Level | Example Path | Scope | Mutable? |
-|-------|-------------|-------|---------|
-| System | `external/salesforce/prod` | Tenant-global | Rarely |
-| Service | `casehubio/qhorus/api` | Platform-global | No |
-| Worker | `workers/camel/lead-enrichment` | Tenant | Yes |
-| Agent | `agents/claude:analyst@v1` | Tenant | Yes — lifecycle |
-| Case | `cases/{id}/work` | Case-instance | Yes — open/close |
-| Human | `humans/alice@casehubio.com` | Tenant | No |
-
-**Preliminary SPI (to be designed in platform session):**
-
-```java
-interface EndpointRegistry {
-    void register(EndpointDescriptor endpoint);
-    Optional<EndpointDescriptor> resolve(String path, String tenancyId);
-    List<EndpointDescriptor> discover(EndpointQuery query);
-    void deregister(String path, String tenancyId);
-}
-```
-
-The `Path` type from `casehub-platform-api` is the addressing primitive.
-
-**Workers + endpoints interplay:** The Camel worker brainstorm should assume the endpoint registry will exist. A Camel route worker config should reference `endpoint: external/kafka/prod-cluster` rather than embedding the broker URL. Design the worker to accept both (endpoint name OR inline config) so it works before platform ships the registry.
+| Item | Repo | Status |
+|------|------|--------|
+| Implement `workers-common` | casehub-workers | Not started — spec complete |
+| Implement `workers-camel` | casehub-workers | Not started — spec complete |
+| Add `workers-common` to parent POM | casehub-workers | Not started (skeleton has http, camel, testing only) |
+| `NoOpWorkerExecutionManager @DefaultBean` | casehub-engine | engine#447 — open |
+| `casehub-endpoints` module | casehub-platform | platform#73 — open |
+| Update PLATFORM.md with casehub-workers build order | casehub-parent | Not started |
+| `workers-http` spec + implementation | casehub-workers | Future — no spec yet |
+| MCP worker, Script worker | casehub-workers | Future |
 
 ---
 
-## Key Architecture Context for Brainstorming
+## Spec Summary (key contracts for implementors)
 
-### Where workers fit in the CaseHub tier structure
+### workers-common — what to build
 
-```
-Foundation     platform, ledger, work, qhorus, connectors, iot, eidos, neural-text
-Orchestration  casehub-engine          ← defines WorkerProvisioner SPI
-Integration    claudony, openclaw, casehub-workers  ← implements WorkerProvisioner
-Application    devtown, aml, clinical, life
-```
+- `PendingCompletion` record — `dispatchId` (UUID), `workerType` (String discriminator), `callbackToken` (UUID), `correlationContext`, `capability`, `eventLogId`, `registeredAt`, `expiresAt`, `provisionerMeta`
+- `AsyncWorkerCompletionRegistry` — ConcurrentHashMap; `register(workerType, ctx, capability, eventLogId, ttl, meta)`; `complete(dispatchId)`; `@Scheduled(every="${casehub.workers.async.expiry-check-interval:5m}") @Blocking expireStale()` using `computeIfPresent` atomicity
+- `WorkflowCompletionPublisher` — `eventBus.publish(WORKER_EXECUTION_FINISHED, WorkflowExecutionCompleted.approved(...))` — `publish()` not `request()`
+- `WorkerCallbackResource` — `POST /workers/complete/{dispatchId}` with `X-Casehub-Callback-Token` header; fires `FaultCallbackEvent` CDI async on fault
+- `FaultCallbackEvent(PendingCompletion, Throwable)` — CDI async event
+- `CompletionExpiredEvent(PendingCompletion)` — CDI async event fired by `expireStale()`
+- `CasehubWorkerHeaders` — constants: `casehub-worker-id`, `casehub-idempotency`, `casehub-case-id`, `casehub-tenancy-id`, `casehub-task-type`, `casehub-callback-token`, `casehub-work-status`
 
-### SPIs to implement (all in casehub-engine-api)
+### workers-camel — what to build
 
-- `WorkerProvisioner` — provision/deprovision a worker. **`postToChannel` is 6-param** (engine#343).
-- `CaseChannelProvider` — open channels for the worker.
-- `WorkerStatusListener` — receive lifecycle events.
-- `WorkerContextProvider` — supply context at invocation.
+- `CamelWorkerConstants.WORKER_TYPE = "camel"` and `CamelWorkerEventBusAddresses.CAMEL_WORKER_FAULT = "casehub.workers.camel.fault"`
+- `CamelReactiveWorkerProvisioner @ApplicationScoped` — validates route exists, returns `ProvisionResult.empty()`; reads capability cache from `CamelCapabilityResolver`
+- `CamelWorkerExecutionManager @ApplicationScoped` — dispatches sync (InOut) and async (InOnly) routes; fires fault on `CAMEL_WORKER_FAULT` via `CamelWorkerFaultPublisher`; no-op `schedulePersistedEvent()`
+- `CamelCapabilityResolver` — three-tier: SPI (`CamelWorkerRoute` CDI beans) → config (`casehub.workers.camel.capabilities.<tag>`) → convention (route ID = capability tag AND `from: direct:{tag}`); initialised via `@Observes @Priority(APPLICATION) StartupEvent`
+- `CasehubCamelComponent` → `CasehubEndpoint` → `CasehubProducer` — reads `casehub-worker-id` header (= dispatchId), calls registry.complete(), fires completion or fault
+- `CamelWorkerFaultPublisher` — fires `WorkflowExecutionFailed` on `CAMEL_WORKER_FAULT`
+- `CamelWorkerFaultEventHandler @ConsumeEvent(CAMEL_WORKER_FAULT, blocking=true)` — persists `WORKER_EXECUTION_FAILED` event log, counts via `findByCaseAndWorkerAndType` filtered by `metadata.inputDataHash`, retries with `emitOn(workerPool)` after Vert.x timer, exhausts with `WORKER_RETRIES_EXHAUSTED`
+- `CamelCompletionExpiryObserver` — `@ObservesAsync CompletionExpiredEvent`, filters `workerType == "camel"`, calls `CamelWorkerFaultPublisher.fault()`
+- `CamelFaultCallbackObserver` — `@ObservesAsync FaultCallbackEvent`, filters `workerType == "camel"`, calls `CamelWorkerFaultPublisher.fault()`
 
-### How claudony does it (reference implementation)
+### Critical implementation details
 
-claudony provisions Claude CLI tmux sessions. The `ClaudonyWorkerExecutionManager` watches for session exit via `WorkflowExecutionCompleted`. Workers report back via `CaseSignalSink` or channel dispatch.
-
-For an HTTP worker: provision = configure the endpoint; execute = POST to the endpoint; complete = receive the webhook callback and fire `WorkflowExecutionCompleted`.
-
-For a Camel worker: provision = register the route; execute = send a message to the route's entry endpoint; complete = receive the route's output exchange and map to `WorkflowExecutionCompleted`.
-
-### Connection to Desired State Management
-
-The DSM session (research doc in parent) established that workers are provisioned as nodes in a desired-state graph. The `casehub-deployment` domain (planned Integration-tier repo) will declare "I want a Camel worker provisioned at endpoint `workers/camel/lead-enrichment`" and the DSM system provisions it. Workers in this repo are the provisioning targets.
-
----
-
-## What's Left (from parent session)
-
-- `casehubio/platform` — implement `casehub-endpoints` module (issue filed)
-- `casehubio/parent` — add casehub-workers to build dependency order in PLATFORM.md
-- This repo — brainstorm workers-camel (immediate next step)
-- This repo — brainstorm workers-http (after camel, simpler)
-- Future — MCP worker, Script worker, GitHub Actions worker
+- `resolveRetryPolicy()` always returns non-null — `null` case returns `new RetryPolicy()` (3 attempts, 10s FIXED), matching Quartz
+- `computeBackoffDelayMs()`: FIXED (constant), EXPONENTIAL (delayMs × 2^(attempt-1), cap 30s), EXPONENTIAL_WITH_JITTER — identical logic to `QuartzWorkerExecutionJobListener`
+- `reloadAndResubmit()` delay uses `emitOn(Infrastructure.getDefaultWorkerPool())` after Vert.x timer (`setTimer` + `onTermination` cancel) — NOT `runSubscriptionOn`
+- `countFailedAttempts()` uses `eventLogRepository.findByCaseAndWorkerAndType(caseId, workerName, WORKER_EXECUTION_FAILED, tenancyId)` filtered by `metadata.get("inputDataHash").asText().equals(inputDataHash)`
+- `WorkerRetriesExhaustedEvent(caseId, workerId, inputDataHash)` — third arg maps to `idempotency` record component
 
 ---
 
 ## Key References
 
-- Research doc: `casehubio/parent` `docs/superpowers/research/2026-06-07-desired-state-management-research.md`
-- Engine SPI reference: `casehub-engine-api` — WorkerProvisioner, CaseChannelProvider
-- Claudony reference impl: `casehubio/claudony` casehub/ module
-- Platform endpoint issue: `casehubio/platform` (check issues for "endpoints" or "registry")
-- PLATFORM.md: `casehubio/parent docs/PLATFORM.md` — tier structure, capability ownership
+- **Spec:** `docs/superpowers/specs/2026-06-08-casehub-workers-camel-design.md` — read this in full before writing a plan
+- **Engine reference impl:** `casehubio/claudony` casehub/ module — `ClaudonyWorkerExecutionManager`, `ClaudonyReactiveWorkerProvisioner`
+- **Quartz retry reference:** `casehubio/engine` `scheduler-quartz/QuartzWorkerExecutionJobListener.java` — mirrors all retry logic
+- **engine#447:** `NoOpWorkerExecutionManager @DefaultBean` engine deliverable
+- **platform#73:** `casehub-endpoints` EndpointRegistry (workers work without it; inline Camel URIs are the fallback)
+- **Research doc:** `casehubio/parent` `docs/superpowers/research/2026-06-07-desired-state-management-research.md`
