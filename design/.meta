@@ -1,0 +1,9 @@
+branch: issue-1-implement-workers-common-camel
+project-sha: a40786f
+date: 2026-06-08
+issue: 1
+issue-repo: casehubio/casehub-workers
+covers: 1,2,3
+flyway-next-v: none
+design-repo: project
+design-section-hashes:
