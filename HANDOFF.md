@@ -1,7 +1,11 @@
-# Handoff — 2026-06-09 (Implementation Complete)
+# Handoff — 2026-06-09 (HTTP Worker Brainstorm In Progress)
 
 **Head commit (project):** c1f77f5 — chore: cleanup and code review fixes
 **Head commit (workspace):** 91f7518 — archive plans to attic
+
+## Cross-Repo Commits This Session
+
+- `casehubio/parent` main: `079d72d` — docs: add outbound authentication coherence policy to PLATFORM.md
 
 ---
 
