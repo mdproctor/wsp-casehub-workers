@@ -1,0 +1,9 @@
+branch: issue-5-design-implement-workers-http
+project-sha: c1f77f5221374f428e0e8703ddf3f8fe22ef8b00
+date: 2026-06-09
+issue: 5
+issue-repo: casehubio/casehub-workers
+covers: 5
+flyway-next-v: none
+design-repo: project
+design-section-hashes: 
