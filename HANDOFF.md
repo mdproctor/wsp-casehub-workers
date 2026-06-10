@@ -1,33 +1,34 @@
-# Handoff — 2026-06-09 (Implementation Complete)
+# Handoff — 2026-06-10 (HTTP Worker Complete)
 
-**Head commit (project):** c1f77f5 — chore: cleanup and code review fixes
-**Head commit (workspace):** 91f7518 — archive plans to attic
+**Head commit (project):** d04cc6b — feat(workers-http): implement HTTP POST worker
+**Head commit (workspace):** e72bbf3 — archive plans to attic
 
 ---
 
 ## What Happened
 
-Implemented `workers-common` and `workers-camel` per the approved spec (7 review cycles). 47 tests, code review with 3 fixes (submitAsync event-loop block, @ConsumeEvent return type, negative TTL guard). Squashed 13 commits to 3, PR #4 merged to main. Issues #1, #2, #3 closed. Branch closed and stamped.
+Designed and implemented `workers-http` — HTTP POST worker for case step dispatch. 3-cycle spec review (24 issues). Extracted `WorkerRetrySupport` to `workers-common`, refactored Camel handler. Added outbound auth coherence policy to PLATFORM.md. 126 tests, squashed to 3 commits, merged to main. Issues #5 closed. Branch closed and stamped.
 
 ---
 
 ## Immediate Next Step
 
-**Brainstorm the HTTP worker** (`workers-http`). Simpler than Camel — implements the same `WorkerExecutionManager` + `ReactiveWorkerProvisioner` SPIs but dispatches via HTTP POST. `workers-common` infrastructure (completion registry, callback endpoint, fault events) is ready to reuse. Run brainstorming to produce a spec.
+**Pick the next worker type.** The `workers-camel/README.md` is sitting untracked on project main — commit it when convenient. Then brainstorm one of: MCP worker, Script worker, or GitHub Actions worker (see What's Next).
 
 ---
 
 ## Cross-Module
 
 **Blocked by:**
-- `casehub-engine` — engine#447 `NoOpWorkerExecutionManager @DefaultBean` must land before deployment without both scheduler-quartz AND workers-camel · S · Low
+- `casehub-platform` — platform#73 `EndpointRegistry` SPI for named endpoint resolution (Tier 3 of HTTP endpoint resolver, currently no-op) · M · Med
+- `casehub-engine` — engine#461 composite `WorkerExecutionManager` for co-deploying HTTP + Camel + Quartz · M · Med
 
 ---
 
 ## What's Left
 
-- `casehubio/parent` — add casehub-workers to build dependency order in PLATFORM.md · XS · Low
-- `casehubio/parent` — add casehub-workers to Cross-Repo Dependency Map in PLATFORM.md · XS · Low
+- `casehubio/parent` — parent#212 add casehub-workers to PLATFORM.md build order + dependency map · XS · Low
+- `workers-camel/README.md` — untracked on project main, commit when convenient · XS · Low
 
 ---
 
@@ -35,16 +36,16 @@ Implemented `workers-common` and `workers-camel` per the approved spec (7 review
 
 | # | Description | Scale | Complexity | Notes |
 |---|-------------|-------|------------|-------|
-| — | Brainstorm workers-http | S | Low | Immediate — simpler SPI impl, reuses workers-common |
 | — | MCP worker design | M | Med | Priority 3 — any MCP server's tools become dispatchable |
 | — | Script worker | S | Low | Shell/Python/JS subprocess execution |
 | — | GitHub Actions worker | S | Low | REST API trigger — relevant to devtown |
-| — | Composite WorkerExecutionManager in engine | M | Med | Required for co-deployment of Camel + Quartz |
+| — | Composite WorkerExecutionManager in engine | M | Med | engine#461 — required for co-deployment |
 
 ---
 
 ## Key References
 
-- Spec: `docs/superpowers/specs/2026-06-08-casehub-workers-camel-design.md`
-- Blog: workspace `blog/2026-06-08-mdp01-workers-common-camel.md`
-- Plan: workspace `plans/attic/issue-1-implement-workers-common-camel/`
+- Spec: `docs/superpowers/specs/2026-06-09-casehub-workers-http-design.md`
+- Blog: workspace `blog/2026-06-09-mdp02-http-worker-outbound-auth.md`
+- Plan: workspace `plans/attic/issue-5-design-implement-workers-http/`
+- Garden: GE-20260609-086833 (quarkus-vertx WebClient dependency gotcha)
