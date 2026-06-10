@@ -1,0 +1,9 @@
+branch: issue-6-workers-github-actions
+project-sha: d04cc6b336cf035895efe2e1ff7dcd86376615b8
+date: 2026-06-10
+issue: 6
+issue-repo: casehubio/casehub-workers
+covers: 6
+flyway-next-v: none
+design-repo: project
+design-section-hashes: 
