@@ -1,0 +1,9 @@
+branch: issue-8-workers-mcp
+project-sha: 825be72a1dfd80ab06b13d04e942165585231d77
+date: 2026-06-12
+issue: 8
+issue-repo: casehubio/casehub-workers
+covers: 8
+flyway-next-v: unknown
+design-repo: project
+design-section-hashes: 
