@@ -1,0 +1,9 @@
+branch: issue-7-mcp-dynamic-tool-discovery
+project-sha: f03de4db76faf79b7798b49a6ad967c4174decc1
+date: 2026-06-13
+issue: 7
+issue-repo: casehubio/casehub-workers
+covers: 7
+flyway-next-v: none
+design-repo: project
+design-section-hashes: 
