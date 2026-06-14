@@ -1,0 +1,9 @@
+branch: issue-9-workers-script
+project-sha: d530d9ccd0fa2b295f93c887fb93061b50bcec78
+date: 2026-06-14
+issue: 9
+issue-repo: casehubio/casehub-workers
+covers: 9
+flyway-next-v: none
+design-repo: project
+design-section-hashes: 
