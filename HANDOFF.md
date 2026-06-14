@@ -1,3 +1,5 @@
+*Updated: #7 closed — removed from backlog.*
+
 # Handoff — 2026-06-12 (MCP Worker Complete)
 
 **Head commit (project):** f03de4d — docs: update CLAUDE.md — workers-mcp module
@@ -35,7 +37,6 @@ Designed and implemented `workers-mcp` — MCP tool dispatch worker. Dispatches 
 
 | # | Description | Scale | Complexity | Notes |
 |---|-------------|-------|------------|-------|
-| #7 | Dynamic MCP tool discovery via `tools/list` | S | Med | Auto-register tools at startup, naming collision strategy needed |
 | — | Script worker | S | Low | Shell/Python/JS subprocess execution |
 | — | Composite WorkerExecutionManager in engine | M | Med | engine#461 — required for co-deployment |
 
