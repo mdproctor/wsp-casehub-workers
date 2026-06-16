@@ -1,21 +1,19 @@
-*Updated: #7 closed — removed from backlog.*
+# Handoff — 2026-06-16 (Script Worker + Fault Pipeline Extraction)
 
-# Handoff — 2026-06-12 (MCP Worker Complete)
-
-**Head commit (project):** f03de4d — docs: update CLAUDE.md — workers-mcp module
-**Head commit (workspace):** 4a47ff9 — feat: promote IDEAS.md from issue-8-workers-mcp
+**Head commit (project):** 35cc685 — fix(#9): migrate test Worker construction to builder API
+**Head commit (workspace):** fb4ee4c — archive plans
 
 ---
 
 ## What Happened
 
-Designed and implemented `workers-mcp` — MCP tool dispatch worker. Dispatches case steps to any MCP server via Streamable HTTP (`2025-06-18`). Config-based server + tool declaration, lazy session initialization with concurrent dedup, dual response parsing (JSON + SSE), `isError` retryable by default. 5-cycle spec review (24 issues), 10 classes, 56 tests. Squashed to 1 commit, merged to main. Issue #8 closed. Garden entry GE-20260609-78dc3a revised (MCP session variant). IDEAS.md created with MCP proxy/aggregator idea. Filed #7 for dynamic tool discovery.
+Designed and implemented `workers-script` (#9) — subprocess execution worker. 3-cycle spec review (16 findings). Prerequisite: extracted fault pipeline (publisher, handler, CDI observers) from 4 per-module copies to workers-common generics, fixing Camel PermanentFaultException bug. Deleted 8 classes, -1,391 lines. Script worker: 8 classes, config-driven subprocess execution via ProcessBuilder, stdin JSON delivery, bounded stdout/stderr capture, exit code classification. 25 tests. Squashed 18 commits → 3 + 1 (upstream SNAPSHOT fix). Issue #9 closed.
 
 ---
 
 ## Immediate Next Step
 
-**Pick the next worker type or cross-cutting work.** Options: Script worker (S/Low — subprocess execution), composite `WorkerExecutionManager` in engine (engine#461 — required for co-deploying multiple workers), or dynamic MCP tool discovery (#7).
+**Pick the next worker type or cross-cutting work.** Options: composite `WorkerExecutionManager` in engine (engine#461 — required for co-deploying multiple workers), or a new worker type.
 
 ---
 
@@ -23,13 +21,14 @@ Designed and implemented `workers-mcp` — MCP tool dispatch worker. Dispatches 
 
 **Blocked by:**
 - `casehub-platform` — platform#73 `EndpointRegistry` SPI for named endpoint resolution (HTTP Tier 3 + future MCP Tier 2 auth) · M · Med
-- `casehub-engine` — engine#461 composite `WorkerExecutionManager` for co-deploying HTTP + Camel + GitHub Actions + MCP + Quartz · M · Med
+- `casehub-engine` — engine#461 composite `WorkerExecutionManager` for co-deploying HTTP + Camel + GitHub Actions + MCP + Script + Quartz · M · Med
 
 ---
 
 ## What's Left
 
-- `casehubio/parent` — parent#225 sync PLATFORM.md for workers-github-actions + workers-mcp modules · XS · Low
+- `casehubio/parent` — parent#225 sync PLATFORM.md for workers-github-actions + workers-mcp + workers-script modules · XS · Low
+- Upstream SNAPSHOT break: `Worker` constructor went private — fixed in tests, but `WorkerTestSupport` should be reviewed if engine-api publishes · XS · Low
 
 ---
 
@@ -37,15 +36,13 @@ Designed and implemented `workers-mcp` — MCP tool dispatch worker. Dispatches 
 
 | # | Description | Scale | Complexity | Notes |
 |---|-------------|-------|------------|-------|
-| — | Script worker | S | Low | Shell/Python/JS subprocess execution |
 | — | Composite WorkerExecutionManager in engine | M | Med | engine#461 — required for co-deployment |
 
 ---
 
 ## Key References
 
-- Spec: `docs/superpowers/specs/2026-06-12-casehub-workers-mcp-design.md`
-- Blog: workspace `blog/2026-06-12-mdp03-mcp-worker-any-protocol-server.md`
-- Plan: workspace `plans/attic/issue-8-workers-mcp/`
-- Garden: GE-20260609-78dc3a (revised — MCP session initialization variant)
-- Ideas: workspace `IDEAS.md` (MCP proxy/aggregator)
+- Spec: `docs/superpowers/specs/2026-06-16-casehub-workers-script-design.md`
+- Blog: workspace `blog/2026-06-16-mdp04-fifth-worker-extraction.md`
+- Plan: workspace `plans/attic/issue-9-workers-script/`
+- Garden: GE-20260529-b994c2 (revised — Mutiny runSubscriptionOn timer variant)
