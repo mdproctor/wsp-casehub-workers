@@ -1,0 +1,9 @@
+branch: issue-11-arc42stories
+project-sha: 35cc685af568698cc52fc40233d83165218f6244
+date: 2026-06-17
+issue: 11
+issue-repo: casehubio/casehub-workers
+covers: 11
+flyway-next-v: none
+design-repo: project
+design-section-hashes: 
