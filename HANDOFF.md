@@ -1,34 +1,33 @@
-# Handoff — 2026-06-16 (Script Worker + Fault Pipeline Extraction)
+# Handoff — 2026-06-17 (ARC42STORIES.MD)
 
-**Head commit (project):** 35cc685 — fix(#9): migrate test Worker construction to builder API
-**Head commit (workspace):** fb4ee4c — archive plans
+**Head commit (project):** c004c51 — docs(#11): create ARC42STORIES.MD — architecture documentation
+**Head commit (workspace):** 757cd98 — feat: promote blog from issue-11-arc42stories
 
 ---
 
 ## What Happened
 
-Designed and implemented `workers-script` (#9) — subprocess execution worker. 3-cycle spec review (16 findings). Prerequisite: extracted fault pipeline (publisher, handler, CDI observers) from 4 per-module copies to workers-common generics, fixing Camel PermanentFaultException bug. Deleted 8 classes, -1,391 lines. Script worker: 8 classes, config-driven subprocess execution via ProcessBuilder, stdin JSON delivery, bounded stdout/stderr capture, exit code classification. 25 tests. Squashed 18 commits → 3 + 1 (upstream SNAPSHOT fix). Issue #9 closed.
+Created ARC42STORIES.MD (#11) — Arc42Stories v0.1 Foundation tier profile. Six chapters (Camel, HTTP, GitHub Actions, MCP, Lifecycle SPI, Script), eight layers, layer×chapter matrix. Three-check quality sweep: 44 file paths verified, stale issue refs fixed (platform#73 CLOSED, parent#225 CLOSED). 1,036 lines. Also filed #10 (workers-k8s) and engine#507 (human task / approval gate at engine layer).
 
 ---
 
 ## Immediate Next Step
 
-**Pick the next worker type or cross-cutting work.** Options: composite `WorkerExecutionManager` in engine (engine#461 — required for co-deploying multiple workers), or a new worker type.
+**Pick the next worker type or cross-cutting work.** Options: K8s worker (#10), composite `WorkerExecutionManager` in engine (engine#461), or `EndpointRegistry` wiring (platform#73 shipped — HTTP Tier 3 + MCP auth).
 
 ---
 
 ## Cross-Module
 
 **Blocked by:**
-- `casehub-platform` — platform#73 `EndpointRegistry` SPI for named endpoint resolution (HTTP Tier 3 + future MCP Tier 2 auth) · M · Med
-- `casehub-engine` — engine#461 composite `WorkerExecutionManager` for co-deploying HTTP + Camel + GitHub Actions + MCP + Script + Quartz · M · Med
+- `casehub-engine` — engine#461 composite `WorkerExecutionManager` for co-deploying multiple workers · M · Med
 
 ---
 
 ## What's Left
 
-- `casehubio/parent` — parent#225 sync PLATFORM.md for workers-github-actions + workers-mcp + workers-script modules · XS · Low
-- Upstream SNAPSHOT break: `Worker` constructor went private — fixed in tests, but `WorkerTestSupport` should be reviewed if engine-api publishes · XS · Low
+- `EndpointRegistry` wiring — platform#73 shipped; HTTP Tier 3 and MCP named endpoint auth not yet consuming it · S · Low
+- Upstream SNAPSHOT break: `Worker` constructor went private — fixed in tests, `WorkerTestSupport` review pending · XS · Low
 
 ---
 
@@ -36,13 +35,15 @@ Designed and implemented `workers-script` (#9) — subprocess execution worker. 
 
 | # | Description | Scale | Complexity | Notes |
 |---|-------------|-------|------------|-------|
+| #10 | workers-k8s — Kubernetes Job dispatch worker | L | Med | Watch-based completion model |
 | — | Composite WorkerExecutionManager in engine | M | Med | engine#461 — required for co-deployment |
+| — | EndpointRegistry wiring | S | Low | platform#73 shipped — activate Tier 3 |
 
 ---
 
 ## Key References
 
-- Spec: `docs/superpowers/specs/2026-06-16-casehub-workers-script-design.md`
-- Blog: workspace `blog/2026-06-16-mdp04-fifth-worker-extraction.md`
-- Plan: workspace `plans/attic/issue-9-workers-script/`
-- Garden: GE-20260529-b994c2 (revised — Mutiny runSubscriptionOn timer variant)
+- ARC42STORIES.MD: project root
+- Blog: workspace `blog/2026-06-17-mdp01-architecture-record.md`
+- Spec: `docs/superpowers/specs/` (6 design specs)
+- ADR: `docs/adr/0001-worker-runtime-spi-placement.md`
