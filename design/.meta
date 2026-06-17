@@ -1,0 +1,9 @@
+branch: issue-12-endpoint-registry-wiring
+project-sha: b808a3e9333c3e1072ce626f57e3947a1328c2f0
+date: 2026-06-17
+issue: 12
+issue-repo: casehubio/casehub-workers
+covers: 12
+flyway-next-v: none
+design-repo: project
+design-section-hashes: 
