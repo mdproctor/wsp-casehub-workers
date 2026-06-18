@@ -1,19 +1,19 @@
-# Handoff — 2026-06-17 (ARC42STORIES.MD)
+# Handoff — 2026-06-18 (EndpointRegistry wiring)
 
-**Head commit (project):** c004c51 — docs(#11): create ARC42STORIES.MD — architecture documentation
-**Head commit (workspace):** 757cd98 — feat: promote blog from issue-11-arc42stories
+**Head commit (project):** 7b4a5e1 — feat(#12): wire EndpointRegistry as Tier 3 in McpServerResolver
+**Head commit (workspace):** f4a910e — archive(issue-12-endpoint-registry-wiring): move plans to attic
 
 ---
 
 ## What Happened
 
-Created ARC42STORIES.MD (#11) — Arc42Stories v0.1 Foundation tier profile. Six chapters (Camel, HTTP, GitHub Actions, MCP, Lifecycle SPI, Script), eight layers, layer×chapter matrix. Three-check quality sweep: 44 file paths verified, stale issue refs fixed (platform#73 CLOSED, parent#225 CLOSED). 1,036 lines. Also filed #10 (workers-k8s) and engine#507 (human task / approval gate at engine layer).
+Wired EndpointRegistry SPI (platform#73) into workers-http and workers-mcp as Tier 3 endpoint resolution (#12). Changed `WorkerCapabilityResolver` to be tenancy-aware — `resolve()` and `firstMatch()` now take `tenancyId`. All four resolver implementations updated (HTTP and MCP gain registry integration; Camel and Script pass through). Also fixed upstream SNAPSHOT break — `WorkflowExecutionFailed` removed from engine-common, replaced with local `WorkerFaultEvent` record (fix #9). Filed engine#530 (tenancyId on ProvisionContext) and engine#531 (getCapabilities hard gate). Design spec went through 2 review cycles with 7 findings.
 
 ---
 
 ## Immediate Next Step
 
-**Pick the next worker type or cross-cutting work.** Options: K8s worker (#10), composite `WorkerExecutionManager` in engine (engine#461), or `EndpointRegistry` wiring (platform#73 shipped — HTTP Tier 3 + MCP auth).
+**Pick the next work item.** Options: K8s worker (#10), composite `WorkerExecutionManager` in engine (engine#461), or engine#530/engine#531 (prerequisite for full tenant-aware provisioning).
 
 ---
 
@@ -21,12 +21,13 @@ Created ARC42STORIES.MD (#11) — Arc42Stories v0.1 Foundation tier profile. Six
 
 **Blocked by:**
 - `casehub-engine` — engine#461 composite `WorkerExecutionManager` for co-deploying multiple workers · M · Med
+- `casehub-engine` — engine#530 add tenancyId to ProvisionContext · XS · Low
+- `casehub-engine` — engine#531 remove getCapabilities() hard gate · XS · Low
 
 ---
 
 ## What's Left
 
-- `EndpointRegistry` wiring — platform#73 shipped; HTTP Tier 3 and MCP named endpoint auth not yet consuming it · S · Low
 - Upstream SNAPSHOT break: `Worker` constructor went private — fixed in tests, `WorkerTestSupport` review pending · XS · Low
 
 ---
@@ -37,13 +38,12 @@ Created ARC42STORIES.MD (#11) — Arc42Stories v0.1 Foundation tier profile. Six
 |---|-------------|-------|------------|-------|
 | #10 | workers-k8s — Kubernetes Job dispatch worker | L | Med | Watch-based completion model |
 | — | Composite WorkerExecutionManager in engine | M | Med | engine#461 — required for co-deployment |
-| — | EndpointRegistry wiring | S | Low | platform#73 shipped — activate Tier 3 |
+| — | engine#530 + engine#531 | XS | Low | Prerequisite for full tenant-aware provisioning |
 
 ---
 
 ## Key References
 
-- ARC42STORIES.MD: project root
-- Blog: workspace `blog/2026-06-17-mdp01-architecture-record.md`
-- Spec: `docs/superpowers/specs/` (6 design specs)
-- ADR: `docs/adr/0001-worker-runtime-spi-placement.md`
+- Spec: `docs/superpowers/specs/2026-06-18-endpoint-registry-wiring-design.md`
+- Blog: workspace `blog/2026-06-18-mdp05-tenancy-aware-endpoint-resolution.md`
+- Garden: GE-20260618-a50133 (upstream SNAPSHOT record deletion gotcha)
