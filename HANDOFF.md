@@ -1,34 +1,28 @@
-# Handoff — 2026-06-18 (EndpointRegistry wiring)
+# Handoff — 2026-06-19 (Ecosystem CI wiring)
 
-**Head commit (project):** 7b4a5e1 — feat(#12): wire EndpointRegistry as Tier 3 in McpServerResolver
-**Head commit (workspace):** f4a910e — archive(issue-12-endpoint-registry-wiring): move plans to attic
+**Head commit (project):** c12655b — fix(#13): align WorkerRetriesExhaustedEvent with published 5-arg constructor
+**Head commit (workspace):** f9a3f6b — docs: add project blog entry 2026-06-19
 
 ---
 
 ## What Happened
 
-Wired EndpointRegistry SPI (platform#73) into workers-http and workers-mcp as Tier 3 endpoint resolution (#12). Changed `WorkerCapabilityResolver` to be tenancy-aware — `resolve()` and `firstMatch()` now take `tenancyId`. All four resolver implementations updated (HTTP and MCP gain registry integration; Camel and Script pass through). Also fixed upstream SNAPSHOT break — `WorkflowExecutionFailed` removed from engine-common, replaced with local `WorkerFaultEvent` record (fix #9). Filed engine#530 (tenancyId on ProvisionContext) and engine#531 (getCapabilities hard gate). Design spec went through 2 review cycles with 7 findings.
+Set up CI for casehub-workers (#13) and audited the full ecosystem. Migrated 15 repo origins from `mdproctor/` to `casehubio/`. Added 6 missing repos (iot, neural-text, desiredstate, ras, ops, quarkmind) to build-all.sh, aggregator.xml, and update-pointers.yml. Removed stale `flow` entry (renamed to `scaffold`). Upgraded claudony and aml to full publish workflows with `<distributionManagement>`. Fixed three CI failures: GitHub Packages redirect alias, broken pipe on subprocess stdin, SNAPSHOT constructor drift. Updated parent README with full ecosystem tables and trigger chain docs. CI is green.
 
 ---
 
 ## Immediate Next Step
 
-**Pick the next work item.** Options: K8s worker (#10), composite `WorkerExecutionManager` in engine (engine#461), or engine#530/engine#531 (prerequisite for full tenant-aware provisioning).
+**Close #13** (CI setup issue) — work is complete and CI is green. Then pick the next work item.
 
 ---
 
 ## Cross-Module
 
 **Blocked by:**
-- `casehub-engine` — engine#461 composite `WorkerExecutionManager` for co-deploying multiple workers · M · Med
-- `casehub-engine` — engine#530 add tenancyId to ProvisionContext · XS · Low
-- `casehub-engine` — engine#531 remove getCapabilities() hard gate · XS · Low
-
----
-
-## What's Left
-
-- Upstream SNAPSHOT break: `Worker` constructor went private — fixed in tests, `WorkerTestSupport` review pending · XS · Low
+- `casehubio/engine` — engine#461 composite `WorkerExecutionManager` for co-deployment · M · Med
+- `casehubio/engine` — engine#530 add tenancyId to ProvisionContext · XS · Low
+- `casehubio/engine` — engine#531 remove getCapabilities() hard gate · XS · Low
 
 ---
 
@@ -44,6 +38,5 @@ Wired EndpointRegistry SPI (platform#73) into workers-http and workers-mcp as Ti
 
 ## Key References
 
-- Spec: `docs/superpowers/specs/2026-06-18-endpoint-registry-wiring-design.md`
-- Blog: workspace `blog/2026-06-18-mdp05-tenancy-aware-endpoint-resolution.md`
-- Garden: GE-20260618-a50133 (upstream SNAPSHOT record deletion gotcha)
+- Blog: workspace `blog/2026-06-19-mdp06-ecosystem-ci-wiring.md`
+- Garden: GE-20260619-31e6e4 (GitHub Packages redirect), GE-20260619-c99452 (broken pipe), GE-20260619-f8b50c (SNAPSHOT commit install)
