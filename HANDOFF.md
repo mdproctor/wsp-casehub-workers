@@ -1,19 +1,19 @@
-# Handoff — 2026-06-23 (engine#530/531 wired, #15 closed)
+# Handoff — 2026-06-25 (#14 closed, worker-api migration complete)
 
-**Head commit (project):** 3f766a2 — docs: sync ARC42STORIES.MD — stale engine#530 reference updated
+**Head commit (project):** 342069f — refactor(#14): migrate Worker imports to casehub-worker-api
 **Head commit (workspace):** see `git log -1` on workspace main
 
 ---
 
 ## What Happened
 
-Wired engine#530 (`tenancyId` in `ProvisionContext`) into all 4 endpoint-resolving provisioners. Replaced `PLATFORM_TENANT_ID` workaround with `context.tenancyId()`. Removed dead `WorkerProvisionerSupport.tenancyId()` helper. Fixed 3 test files passing null `ProvisionContext`. engine#531 (getCapabilities hard gate) required no workers-side changes. Both cross-repo blockers resolved. #15 closed, CI green.
+Migrated all Worker/Capability imports from `io.casehub.api.model` to `io.casehub.worker.api` (records from casehub-worker-api) and governance types (ExecutionPolicy, RetryPolicy, BackoffStrategy) to `io.casehub.platform.api.governance`. 35 files, 44 changed overall. #14 closed. CI green after rebuilding engine locally to get the latest engine-common SNAPSHOT (engine#543 was merged in source but the SNAPSHOT wasn't published to m2 — now resolved).
 
 ---
 
 ## Immediate Next Step
 
-Pick the next work item from What's Next. #10 (workers-k8s) is the only remaining workers-side feature work. engine#461 is engine-side.
+Pick the next work item from What's Next. #10 (workers-k8s) is the remaining workers-side feature work. engine#461 is engine-side.
 
 ---
 
@@ -28,7 +28,6 @@ Pick the next work item from What's Next. #10 (workers-k8s) is the only remainin
 
 | # | Description | Scale | Complexity | Notes |
 |---|-------------|-------|------------|-------|
-| #14 | Migrate Worker imports to casehub-worker-api | M | Low | Depends on worker-api being published |
 | #10 | workers-k8s — Kubernetes Job dispatch worker | L | Med | Watch-based completion model |
 | — | Composite WorkerExecutionManager in engine | M | Med | engine#461 — required for co-deployment |
 
@@ -36,5 +35,6 @@ Pick the next work item from What's Next. #10 (workers-k8s) is the only remainin
 
 ## Key References
 
-- Blog: workspace `blog/2026-06-23-mdp07-cross-repo-blockers-resolved.md`
-- Garden: GE-20260601-a35fb3 (tenancyId null pattern — hit again in tests this session)
+- Spec: `docs/superpowers/specs/2026-06-25-migrate-worker-api-imports-design.md`
+- Blog: workspace `blog/2026-06-25-mdp08-worker-foundation-extraction.md`
+- Garden: GE-20260624-0b931d (Capability null schema), GE-20260624-3324b6 (Builder lambda ambiguity)
