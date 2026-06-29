@@ -1,26 +1,19 @@
-# Handoff — 2026-06-25 (#14 closed, worker-api migration complete)
+# Handoff — 2026-06-29 (engine#461 shipped, co-deployment enabled)
 
-**Head commit (project):** 342069f — refactor(#14): migrate Worker imports to casehub-worker-api
+**Head commit (project):** d8f7e94 — feat(#461): migrate HTTP, Script, MCP, GitHub Actions backends to @WorkerBackend
 **Head commit (workspace):** see `git log -1` on workspace main
 
 ---
 
 ## What Happened
 
-Migrated all Worker/Capability imports from `io.casehub.api.model` to `io.casehub.worker.api` (records from casehub-worker-api) and governance types (ExecutionPolicy, RetryPolicy, BackoffStrategy) to `io.casehub.platform.api.governance`. 35 files, 44 changed overall. #14 closed. CI green after rebuilding engine locally to get the latest engine-common SNAPSHOT (engine#543 was merged in source but the SNAPSHOT wasn't published to m2 — now resolved).
+engine#461 shipped — `CompositeWorkerExecutionManager` in engine-runtime discovers all `@WorkerBackend`-qualified backends and routes via `supports()`. Workers-side integration complete: all five WEMs (`CamelWorkerExecutionManager`, `HttpWorkerExecutionManager`, `McpWorkerExecutionManager`, `GitHubActionsWorkerExecutionManager`, `ScriptWorkerExecutionManager`) annotated `@WorkerBackend @Priority(10)`, each implements `supports()`. Co-deployment constraints resolved. CLAUDE.md and ARC42STORIES.MD updated to reflect.
 
 ---
 
 ## Immediate Next Step
 
-Pick the next work item from What's Next. #10 (workers-k8s) is the remaining workers-side feature work. engine#461 is engine-side.
-
----
-
-## Cross-Module
-
-**Blocked by:**
-- `casehubio/engine` — engine#461 composite `WorkerExecutionManager` for co-deployment · M · Med
+Pick the next work item from What's Next. #10 (workers-k8s) is the remaining feature work.
 
 ---
 
@@ -29,7 +22,6 @@ Pick the next work item from What's Next. #10 (workers-k8s) is the remaining wor
 | # | Description | Scale | Complexity | Notes |
 |---|-------------|-------|------------|-------|
 | #10 | workers-k8s — Kubernetes Job dispatch worker | L | Med | Watch-based completion model |
-| — | Composite WorkerExecutionManager in engine | M | Med | engine#461 — required for co-deployment |
 
 ---
 
@@ -37,4 +29,4 @@ Pick the next work item from What's Next. #10 (workers-k8s) is the remaining wor
 
 - Spec: `docs/superpowers/specs/2026-06-25-migrate-worker-api-imports-design.md`
 - Blog: workspace `blog/2026-06-25-mdp08-worker-foundation-extraction.md`
-- Garden: GE-20260624-0b931d (Capability null schema), GE-20260624-3324b6 (Builder lambda ambiguity)
+- Garden: GE-20260624-0b931d (Capability null schema), GE-20260624-3324b6 (Builder lambda ambiguity), GE-20260428-9311f8 (CDI SPI collision gotcha)
