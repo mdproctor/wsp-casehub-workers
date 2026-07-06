@@ -7,3 +7,4 @@
 | [2026-06-18-mdp05-tenancy-aware-endpoint-resolution.md](2026-06-18-mdp05-tenancy-aware-endpoint-resolution.md) | 2026-06-18 | Tenancy-aware endpoint resolution |
 | [2026-06-19-mdp06-ecosystem-ci-wiring.md](2026-06-19-mdp06-ecosystem-ci-wiring.md) | 2026-06-19 | Ecosystem CI wiring |
 | [2026-06-23-mdp07-cross-repo-blockers-resolved.md](2026-06-23-mdp07-cross-repo-blockers-resolved.md) | 2026-06-23 | Cross-repo blockers resolved — engine#530/531 wired into provisioners |
+| [2026-07-03-mdp08-k8s-restart-recovery.md](2026-07-03-mdp08-k8s-restart-recovery.md) | 2026-07-03 | K8s restart recovery — enriched labels, processTerminal recovery path, schedulePersistedEvent |
