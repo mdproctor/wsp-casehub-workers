@@ -1,21 +1,21 @@
-# Handoff — 2026-07-02 (workers-k8s shipped)
+# Handoff — 2026-07-06 (K8s restart recovery shipped)
 
-**Head commit (project):** abd71b6 — feat(#10): implement workers-k8s — Kubernetes Job dispatch worker
+**Head commit (project):** da93efe — feat(#17): implement workers-k8s restart recovery
 **Head commit (workspace):** see `git log -1` on workspace main
 
 ---
 
 ## What Happened
 
-workers-k8s (#10) shipped — 6th worker module. Watch-based completion via fabric8 SharedIndexInformer per namespace. 12 types following the established module pattern. 68 tests. Design reviewed (5 rounds, 19 issues, all verified). Full K8s fault classification (BackoffLimitExceeded context-dependent, DeadlineExceeded enriched with Pod state). Dual job definition (image-based + template-based). Cross-module Worker.Builder API migration (capabilities → capabilityNames) fixed across all worker modules.
+K8s restart recovery (#17) shipped. Four changes: enriched Job labels (case-id, worker-name, event-log-id, idempotency), recovery path in processTerminal() with at-most-once guard, schedulePersistedEvent() for crash-before-Job-creation, eager resolver init via @PostConstruct. Design review ran 4 rounds / 17 issues — surfaced the startup priority race (engine recovery at @Priority(22) vs worker init at @Priority(2010)) and the at-most-once guard requirement. Garden entry GE-20260704-294d67 submitted for the startup ordering gotcha. 80 tests in workers-k8s.
 
-Also filed #16 (multi-cluster) and #17 (registry persistence for restart recovery) as follow-up issues.
+Pre-existing test failures found in workers-common: `EventLogRepository.findById()` and `CaseInstanceRepository.findByUuid()` changed from `Uni<T>` to `T` in engine-common — 6 tests in workers-common reference the old Uni signatures.
 
 ---
 
 ## Immediate Next Step
 
-No remaining feature work tracked. Check GitHub issues for new work or pick up #16/#17 if multi-cluster or restart recovery becomes a priority.
+Fix the pre-existing workers-common test failures (6 tests — WorkerFaultHandlerTest, WorkerRetrySupportTest). Same pattern as the K8s fix: replace `Uni.createFrom().item(x)` mocks with direct returns. File an issue if not already tracked.
 
 ---
 
@@ -24,12 +24,13 @@ No remaining feature work tracked. Check GitHub issues for new work or pick up #
 | # | Description | Scale | Complexity | Notes |
 |---|-------------|-------|------------|-------|
 | #16 | Multi-cluster K8s dispatch | M | Med | Per-cluster KubernetesClient, per-cluster informers |
-| #17 | Registry persistence for restart recovery | M | Med | K8s-specific: re-list Jobs on startup |
+| — | Fix workers-common test failures (EventLogRepository API migration) | XS | Low | 6 tests, mechanical Uni→blocking migration |
 
 ---
 
 ## Key References
 
-- Spec: `docs/superpowers/specs/2026-07-01-casehub-workers-k8s-design.md`
-- Blog: workspace `blog/2026-07-01-mdp08-kubernetes-job-worker.md`
-- Plan: workspace `plans/attic/issue-10-workers-k8s/2026-07-01-workers-k8s.md`
+- Spec: `docs/superpowers/specs/2026-07-03-k8s-restart-recovery-design.md`
+- Blog: workspace `blog/2026-07-03-mdp08-k8s-restart-recovery.md`
+- Plan: workspace `plans/attic/issue-17-k8s-restart-recovery/2026-07-03-k8s-restart-recovery.md`
+- Garden: GE-20260704-294d67 — startup ordering gotcha (engine recovery vs worker init priority race)
