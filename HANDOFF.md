@@ -1,3 +1,5 @@
+*Updated: engine#676 closed — removed from Cross-Module blockers.*
+
 # Handoff — 2026-07-29 (CI fix + housekeeping)
 
 **Head commit (project):** 5914da6 — docs: sync ARC42STORIES.MD — stale scan at session wrap
@@ -19,7 +21,8 @@ Pick up #16 (multi-cluster K8s dispatch, M/Med) — no trailing obligations.
 
 ## Cross-Module
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+**Enabled:**
+- `casehub-engine` — engine#676 shipped (`bindingName` on `submit()`); workers already propagate `bindingName` end-to-end, activation is ready when engine releases · XS · Low
 
 ---
 
