@@ -1,15 +1,13 @@
-# Handoff — 2026-07-07 (bindingName propagation + CI fix)
+# Handoff — 2026-07-29 (CI fix + housekeeping)
 
-**Head commit (project):** eadbc83 — feat(#18): propagate bindingName through worker completion path
-**Head commit (workspace):** see `git log -1` on workspace main
+**Head commit (project):** 5914da6 — docs: sync ARC42STORIES.MD — stale scan at session wrap
+**Head commit (workspace):** d251533 — recovered 5 blog entries to workspace main
 
 ---
 
 ## What Happened
 
-Issue #18 completed and landed on main: `bindingName` flows through all 6 worker completion, fault, retry, recovery, and callback paths. Design review (4 rounds) caught three gaps before implementation. 394 tests, 41 files. Blocked by engine#676 for end-to-end activation.
-
-Also fixed CI: parent POM had repository id `github-casehubio` but `setup-java` only configures `github` → 401 on all SNAPSHOT resolution since June 29 (GE-20260428-f94886). One-line rename in casehub-parent, published, workers CI now green.
+Fixed CI — upstream `casehub-worker-api` changed `WorkerFunction<T,R>` (2 type params, 3-arg constructor) and reactive retirement converted all execution managers/fault handlers to blocking. Aligned 24 test files across all 7 worker modules. Also stamped 6 unstamped project branches, recovered 5 blog entries from closed workspace branches, and ran arc42 stale scan (2 items fixed).
 
 ---
 
@@ -21,8 +19,7 @@ Pick up #16 (multi-cluster K8s dispatch, M/Med) — no trailing obligations.
 
 ## Cross-Module
 
-**Blocked by:**
-- `casehub-engine` — engine#676 (add `bindingName` to `submit()`) gates end-to-end activation · XS · Low
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ---
 
@@ -36,4 +33,4 @@ Pick up #16 (multi-cluster K8s dispatch, M/Med) — no trailing obligations.
 
 ## Key References
 
-*Unchanged — `git show HEAD~2:HANDOFF.md`*
+*Unchanged — `git show HEAD~3:HANDOFF.md`*
