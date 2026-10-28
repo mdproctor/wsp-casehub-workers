@@ -1,0 +1,15 @@
+# Work Plan — issue-33-workers-playbook
+
+## State
+branch: issue-33-workers-playbook
+state: scaffolded
+project-sha: 
+date: 
+issue-repo: casehubio/workers
+covers: 33
+design-repo: 
+design-section-hashes: 
+flyway-next-v: none
+
+## Queue
+- [ ] casehubio/workers#33 — Issue #33 ← active
